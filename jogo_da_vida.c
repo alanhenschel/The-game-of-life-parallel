@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <time.h>
-#define N 11
+#define N 17
 
 int verifica_vizinho(int mat[N][N],int i,int j) {
     int count = 0;
@@ -30,8 +30,7 @@ void imprimir_mat(int mat2[N][N]) {
 void main() {
 
     int mat[N][N], mat2[N][N];
-    srand(time(NULL));
-    int block_size = 2;
+    int block_size = 4;
     for (int i = 0; i <N; i++) {
         for(int j = 0; j <N;j++) {
             if(i==0 || j==N-1 || j==0 || i==N-1)
@@ -46,13 +45,13 @@ void main() {
     int n_process = N/total_thread;
     copia_mat(mat,mat2);
     omp_set_num_threads(total_thread);
-    for(k = 0; k < 1;k++) {
+    for(k = 0; k < 1000;k++) {
         //printf("\nK MOMENTO:%d\n",k);
-            for (i = 0; i < N-1; i+=block_size) {
-                for(j = 0; j < N-1;j+=block_size) {
-                    # pragma omp parallel for private (y,x)
-                    for(y = 0; y < block_size; y++) {
-                        for(x = 0; x < block_size; x++) {
+            for (i = 1; i < N-1; i+=block_size) {
+                for(j = 1; j < N-1;j+=block_size) {
+                    # pragma omp parallel for shared(mat,mat2) private (i,j,y,x) collapse(2)
+                    for(y = 1; y < block_size; y++) {
+                        for(x = 1; x < block_size; x++) {
                             int count = 0;
                             count = verifica_vizinho(mat,y,x);
                             //count-=mat[i][j];
@@ -69,16 +68,18 @@ void main() {
                                 mat2[i+y][j+x] = mat[i+y][j+x];
                             }
                         }
-                        int ID = omp_get_thread_num();
-                        printf("\nTHREAD ATUAL:%d\n",ID);
-                        imprimir_mat(mat2);
+                        //int ID = omp_get_thread_num();
+                        //printf("\nTHREAD ATUAL:%d\n",ID);
+                        //imprimir_mat(mat2);
                     }
                 }     
             }
+            
             copia_mat(mat2,mat);
+            imprimir_mat(mat2);
 
         }   
-        //imprimir_mat(mat2);
+        imprimir_mat(mat2);
 
     printf("\nmat FINAL:\n");
     imprimir_mat(mat2);
